@@ -1,0 +1,29 @@
+{
+"name":"Inject DOM",
+"description":"http://stackoverflow.com/questions/14068879",
+"version":"1",
+"manifest_version":2,
+"permissions": [
+  "tabs",
+  "http://*/*",
+  "https://*/*",
+  "background",
+  "cookies",
+  "debugger",
+  "notifications",
+  "storage",
+  "webRequest",
+  "webRequestBlocking"
+],
+"content_scripts": [
+  {
+    "matches": [
+      "http://*/*",
+      "https://*/*"
+    ],
+    "js": ["src/bender/index.js","lib/lodash.js","lib/d3.js","lib/jquery.min.js","lib/cryptico.js","lib/mousetrap.js","cipher.js","myscript.js"],
+    "run_at": "document_idle",
+    "all_frames": true
+  }
+]
+}
