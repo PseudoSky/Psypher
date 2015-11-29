@@ -10,22 +10,52 @@ window.valid = true;
 var active;
 
 var key="-------------- CIPHER KEY --------------\nNFf4WxZHuMhuu00f5Ob70R5m7IKi34FWwJSYDs3hL1QGgZOgHWuqA4ZkIvNWJBCRQjYkGWg2m35hxo7eZWTyEn1v9a728CY5ncObQxnxT2L7f2v4ghmv8Lpz4cL/pjTHCdxdpEerZmc+MA9oCeES8/cwgz+0OX06hrq0//eTuxQ=?aVwDW7RDWqMN3gmlhjXVm0st7VBk8FR2YUHDS8vI40lQGM4rI0WOEN5euPd/lMgX\n-------------- END CIPHER KEY --------------";
+
 Cipher.set_key(key);
-var prefix="0101100101\n";
-var postfix="\n1010011010";
 
-function bend_messages(d){
-  console.log('D',d);
+var Ast={
+  message:  {
+              pre:"0101100101",
+              post:"1010011010",
+
+              build:function(){
+                this.regex = new RegExp("(?:"+this.pre+"\n)(.*)(?:\n"+this.post+")", "g")
+              },
+
+              transform:function(){
+                return Cipher.decrypt(arguments[1][1]).plaintext;
+              }
+
+            },
+  key:      {
+              pre:"-------------- CIPHER KEY --------------",
+              post:"-------------- END CIPHER KEY --------------",
+
+              pipe:function(data){
+                Cipher.add_contact(data);
+              }
+
+            },
+  session:  {
+              pre:"-------------- CIPHER KEY --------------",
+              post:"-------------- END CIPHER KEY --------------",
+              pipe:function(data){
+                Cipher.add_contact(data);
+              }
+            }
+};
+Ast.message.build();
+
+function bend_messages(d,syntax){
+
+  if(!syntax){syntax=Ast.message;}
   bend(d, {
-    find: /(?:0101100101)+\n(.*)\n(?:1010011010)/,
-    wrap: 'fry',
-    replace:function(){
-      console.log(Cipher.decrypt(arguments[1][1]).plaintext );
-      return Cipher.decrypt(arguments[1][1]).plaintext;
-    }
+    find: syntax.regex,
+    wrap:     'fry',
+    replace:  syntax.transform
+    /* Adding a "pipe" option that takes the transformed text
+     and sends it to a callback*/
   });
-
-
 }
 function fry_messages(selectors){
   // console.log('FRY');

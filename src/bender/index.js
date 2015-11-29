@@ -483,6 +483,7 @@
 
 			var replacement = this.options.replace || '$&';
 			var wrapper = this.options.wrap;
+			var pipe = this.options.pipe;
 
 			if (wrapper && wrapper.nodeType) {
 				// Wrapper has been provided as a stencil-node for us to clone:
@@ -493,6 +494,10 @@
 
 			if (typeof replacement == 'function') {
 				replacement = replacement(portion, match, matchIndex);
+				if(pipe){
+					pipe(replacement);
+				}
+
 				if (replacement && replacement.nodeType) {
 					return replacement;
 				}
