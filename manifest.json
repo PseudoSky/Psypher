@@ -5,6 +5,8 @@
 "manifest_version":2,
 "permissions": [
   "tabs",
+  "webRequest",
+  "ftp://*/*",
   "http://*/*",
   "https://*/*",
   "background",
@@ -21,7 +23,7 @@
       "http://*/*",
       "https://*/*"
     ],
-    "js": ["src/bender/index.js","lib/lodash.js","lib/d3.js","lib/jquery.min.js","lib/cryptico.js","lib/mousetrap.js","cipher.js","myscript.js"],
+    "js": ["lib/dexie.js","lib/sjcl.js","lib/collections.min.js","lib/mousetrap.js","src/bender/index.js","src/bender/upgrades.js","lib/lodash.js","lib/d3.js","lib/jquery.min.js","lib/cryptico.js","src/psypher.js","myscript.js"],
     "run_at": "document_idle",
     "all_frames": true
   }

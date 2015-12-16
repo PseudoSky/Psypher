@@ -1,0 +1,29 @@
+{
+  "name": "psypher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cipher.js",
+  "dependencies": {
+    "collections": "^1.2.4"
+  },
+  "devDependencies": {
+    "browserify": "latest",
+    "grunt": "latest",
+    "grunt-browserify": "latest",
+    "grunt-contrib-watch": "latest"
+
+    },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PseudoSky/Psypher.git"
+  },
+  "author": "PseudoSnow",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PseudoSky/Psypher/issues"
+  },
+  "homepage": "https://github.com/PseudoSky/Psypher#readme"
+}
