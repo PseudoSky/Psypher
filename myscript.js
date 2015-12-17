@@ -115,6 +115,61 @@ Mousetrap.bindGlobal(['command+k','ctrl+k'], function(e) {
   }
  });
 
+Mousetrap.bindGlobal(['command+b','ctrl+b'], function(e) {
+  var exists = document.getElementsByClassName("scrubbing-speed-wrapper");
+  console.log(exists);
+  if(exists.length == 0) {
+    active=document.activeElement;
+    console.log('Inserting Scrubber', active.tagName,active.value);
+
+    var datepicker = document.createElement("div"); 
+    datepicker.setAttribute("class", "datepicker");
+
+    var scrubberWrapper = document.createElement("div"); 
+    scrubberWrapper.setAttribute("class", "scrubbing-speed-wrapper ss-wrapper");
+
+    var time = document.createElement("p");
+    time.setAttribute("class", "ss-label");
+    time.setAttribute("id", "timeElement");
+
+    var scrubberSlider = document.createElement("div");
+    scrubberSlider.setAttribute("class", "scrubbing-speed-slider ss-slider");
+    scrubberSlider.setAttribute("data-ss-name", "my-slider");
+    scrubberSlider.setAttribute("data-ss-min", "0");
+    scrubberSlider.setAttribute("data-ss-max", "120");
+    scrubberSlider.setAttribute("data-ss-color-fill", "#04007F");
+    scrubberSlider.setAttribute("data-ss-color-empty", "#666");
+    scrubberSlider.style.width=active.getBoundingClientRect().width+"px";
+
+    scrubberWrapper.appendChild(scrubberSlider);
+    datepicker.appendChild(scrubberWrapper);
+    datepicker.appendChild(time);
+    document.body.appendChild(datepicker);
+    datepicker.style.left = active.getBoundingClientRect().left+"px";
+    datepicker.style.top = active.getBoundingClientRect().top - 30+"px";
+    //active.parentNode.parentNode.insertBefore(datepicker, active.parentNode);
+
+
+    ScrubbingSpeed.init('my-slider', function(args){ 
+        var day = Math.round(args.current/12);
+        var hour = Math.round(args.current%12)
+
+        $('#timeElement').html(day+ " days "+hour+" hours");
+        console.log(args.min);          //maps to data-ss-min set in DOM
+        console.log(args.current);      //maps to current value between min and max
+        console.log(args.max);          //maps to data-ss-max set in DOM
+        console.log(args.speed);        //returns the speed
+        console.log(args.percentX);     //returns percentX of knob within track
+        console.log(args.percentY);     //returns percentY from origPos.y click/touch
+      }, 
+      [{ speed: 1, label: 'Day' }, { speed: .25, label: 'Hour' }]
+    );
+
+  }
+
+
+});
+
 // $('.document').bind("DOMSubtreeModified",_.partial(find_messages,'.conversation') );
 // });
 // window.setInterval(binding,1000);
