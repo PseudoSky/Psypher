@@ -26,7 +26,7 @@
     "js": ["lib/lodash.js","lib/dexie.js","lib/sjcl.js","lib/collections.min.js","lib/mousetrap.js","src/bender/index.js","src/bender/upgrades.js","lib/d3.js","lib/jquery.min.js","lib/cryptico.js","src/psypher.js","src/storage.js","myscript.js", "lib/scrubber.js"],
     "css": ["lib/css/scrubber.css"],
     "run_at": "document_idle",
-    "all_frames": true
+    "all_frames": false
   }
 ]
 }

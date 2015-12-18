@@ -137,6 +137,20 @@ User.prototype.send_key = function(){
   return this.format_key();
 }
 
+User.discover = function(text){
+    try{
+        text=JSON.parse(text);
+    }catch(d){
+        alert("Key Parsing Failed");
+    }
+    if(_.has(text,'username')){
+        // this.add_key(text);
+        console.log('Couldnt add key',text);
+    };
+    return "Discovered Session Key For User: "+text.username;
+  // this.session_keys[username] = key;
+}
+
 /* Recieve the sender's DH public key and store it */
 User.prototype.discover = function(text){
     try{
@@ -153,7 +167,14 @@ User.prototype.discover = function(text){
 
 /* Recieve the sender's DH public key and store it */
 User.prototype.add_key = function(key){
-  this.session_keys[key.username] = key;
+    if(!_.isArray(this.sessions))this.sessions=[];
+    this.sessions.push(Session.build(key));
+}
+
+/* Recieve the sender's DH public key and store it */
+User.prototype.add_session = function(opts){
+    if(!_.isArray(this.sessions))this.sessions=[];
+    this.sessions.push(Session.build(opts));
 }
 
 /*
@@ -163,6 +184,8 @@ User.prototype.add_key = function(key){
 User.prototype.shared_key = function(username){
   return this.keys.sec.dh(this.session_keys[username])
 }
+
+
 
 /* Assume the user has the recipients username & key */
 User.prototype.send_message = function(user_recipient, clear_text){
@@ -222,6 +245,15 @@ var Session={
         this.date_created = new Date();
         opts && opts.exp_date && (this.duration = new Date(exp_date));
         this.uid = (opts && opts.uid) || _.uniqueId('session');
+        return this;
+    },
+    new: function(opts){
+        // this.session_id   = _.uniqueId();
+        this.date_created = new Date();
+        this.duration=opts.duration;
+        // opts && opts.duration && (this.duration = new Date(opts.duration));
+        this.uid = (opts && opts.uid) || _.uniqueId('session');
+        return this;
     },
 
     serialize: function(obj_from_db){
@@ -335,7 +367,7 @@ Store.prototype.initialize = function(){
 
     /* Confirm that at least the owner exists */
     User.set_owner() || User.create_owner();
-
+    _.defer(Fry.find_messages);
     console.log('Successfully Initialized');
 
 }
@@ -388,3 +420,4 @@ Store.prototype.open=function(){
 Psypher.store = new Store();
 Psypher.store.open();
 // Store.initialize();
+// window.setInterval(Fry.find_messages,1000);

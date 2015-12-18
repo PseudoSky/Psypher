@@ -5,17 +5,19 @@ var key="--------- CIPHER KEY ---------\nNFf4WxZHuMhuu00f5Ob70R5m7IKi34FWwJSYDs3
 
 Cipher.set_key(key);
 var transform=function(){
+  console.log('Trans',_.stripTags(arguments[1][1]),arguments[1][1]);
   return Cipher.decrypt(arguments[1][1]).plaintext;
 };
 var discover=function(){
-  return Psypher.owner.discover(arguments[1][1]);
+
+  return User.discover(arguments[1][1]);
 };
 var Ast={
   message:  {
               pre:"--------- 0101100101 ---------",
               post:"--------- 1010011010 ---------",
               regex:/.*/,
-              r:new RegExp("(?:--------- 0101100101 ---------\n)(.*)(?:\n--------- 1010011010 ---------)", "g"),
+              r:new RegExp("(?:--------- 0101100101 ---------[\n|\<br\>])(.*)(?:\n--------- 1010011010 ---------)", "g"),
               build:function(mess){
                 // this.regex = new RegExp("(?:"+this.pre+"\n)(.*)(?:\n"+this.post+")", "g");
                 mess.regex= new RegExp("(?:--------- 0101100101 ---------\n)(.*)(?:\n--------- 1010011010 ---------)", "g")
@@ -47,9 +49,11 @@ var Ast={
 
 Ast.message.build(Ast.message);
 
-function bend_messages(d,syntax){
+function Bender(){};
 
-  if(!syntax){syntax=Ast.message;}
+Bender.bend_messages=function(d,syntax){
+
+  // if(!syntax){syntax=Ast.message;}
   // console.log(syntax);
   window.last_bend=bend(d, {
     find: new RegExp("(?:--------- 0101100101 ---------\n)(.*)(?:\n--------- 1010011010 ---------)", "g"),
@@ -67,7 +71,7 @@ function bend_messages(d,syntax){
   });
   return window.last_bend;
 }
-function unbend(d,syntax){
+Bender.unbend=function(d,syntax){
 
   if(window.last_bend){
     window.last_bend.undo();
@@ -76,18 +80,25 @@ function unbend(d,syntax){
 
 }
 
-var Fry = {selectors:{}};
+function Fry(selectors){
+  this.selectors=selectors || [];
+}
 
-Fry.add_selectors=function(domain,selectors){
-  this.selectors[domain]=Array.prototype.concat((this.selectors[domain] || []),selectors);
+Fry.add_selectors=function(selectors){
+  // this.selectors[domain]=Array.prototype.concat((this.selectors[domain] || []),selectors);
+  Psypher.selectors=Array.prototype.concat((Psypher.selectors || []),selectors);
 }
 Fry.find_messages=function(selectors){
   // console.log('FRY');
-    _.each(this.selectors,function(s){
-      // console.log('S: ',s);
-      _.each($(s),bend_messages);
-    });
+  Psypher.frying=true;
+  console.log("frying");
+  _.each(Psypher.selectors,function(s){
+    // console.log('S: ',s);
+    _.each($(s),Bender.bend_messages);
+  });
+  // _.debounce(Fry.find_messages,1000);
 }
+
 // if(active.tagName=="BODY"){ return;}
 // console.log(document.activeElement.tagName);
 // console.log('Startingg',document.activeElement,window.valid);
@@ -183,7 +194,7 @@ Mousetrap.bindGlobal(['command+b','ctrl+b'], function(e) {
     scrubberWrapper.appendChild(scrubberSlider);
     contain.appendChild(time);
     contain.appendChild(scrubberSlider);
-    console.log('Wrapper, cont',active,parent,wrapper,contain.getBoundingClientRect());
+    // console.log('Wrapper, cont',active,parent,wrapper,contain.getBoundingClientRect());
 
 
     // datepicker.style.left = (wrapper.left+10)+"px";
@@ -195,15 +206,16 @@ Mousetrap.bindGlobal(['command+b','ctrl+b'], function(e) {
     ScrubbingSpeed.init('my-slider', function(args){
 
         var day = Math.round(args.current/12);
-        var hour = Math.round(args.current%12)
-
+        var hour = Math.round(args.current%12);
+        var today=new Date();
+        Psypher.new_session=new Date(today.getFullYear(),today.getMonth(),today.getDate()+day,today.getHours()+hour);
         $('#timeElement').html("<div class=\"left\">"+((day==0) ? "" :(day+ "d "))+"</div><div class=\"right\">"+((hour==0) ? "" :(hour+ "h "))+"</div></div>");
-        console.log(args.min);          //maps to data-ss-min set in DOM
-        console.log(args.current);      //maps to current value between min and max
-        console.log(args.max);          //maps to data-ss-max set in DOM
-        console.log(args.speed);        //returns the speed
-        console.log(args.percentX);     //returns percentX of knob within track
-        console.log(args.percentY);     //returns percentY from origPos.y click/touch
+        // console.log(args.min);          //maps to data-ss-min set in DOM
+        // console.log(args.current);      //maps to current value between min and max
+        // console.log(args.max);          //maps to data-ss-max set in DOM
+        // console.log(args.speed);        //returns the speed
+        // console.log(args.percentX);     //returns percentX of knob within track
+        // console.log(args.percentY);     //returns percentY from origPos.y click/touch
       },
       [{ speed: .5, label: 'Day' }, { speed: .2, label: 'Hour' }]
     );
@@ -216,5 +228,10 @@ Mousetrap.bindGlobal(['command+b','ctrl+b'], function(e) {
 // $('.document').bind("DOMSubtreeModified",_.partial(find_messages,'.conversation') );
 // });
 // window.setInterval(binding,1000);
-Fry.add_selectors(['#webMessengerRecentMessages','.conversation','pre.paste']);
+// window.fry_inst=new Fry(['#webMessengerRecentMessages','.conversation','pre.paste','push-pages']);
+Psypher.selectors=['#webMessengerRecentMessages','.conversation','pre.paste','push-pages'];
+Fry.add_selectors(Psypher.selectors);
+Fry.add_selectors(['#webMessengerRecentMessages','.conversation','pre.paste','push-pages']);
+console.log(Fry.selectors);
+_.defer(Fry.find_messages);
 window.setInterval(Fry.find_messages,1000);
