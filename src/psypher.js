@@ -1,3 +1,4 @@
+if(typeof Psypher==='undefined'){window.Psypher={};}
 
 function Cipher(cryptico){
   var C={};

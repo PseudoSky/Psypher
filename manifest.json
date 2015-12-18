@@ -1,11 +1,9 @@
 {
-"name":"Inject DOM",
-"description":"http://stackoverflow.com/questions/14068879",
+"name":"Ephemeral",
+"description":"https://github.com/PseudoSky/Ephemeral",
 "version":"1",
 "manifest_version":2,
 "permissions": [
-  "activeTab",
-  "https://ajax.googleapis.com/",
   "tabs",
   "webRequest",
   "ftp://*/*",
@@ -25,10 +23,8 @@
       "http://*/*",
       "https://*/*"
     ],
+    "js": ["lib/lodash.js","lib/dexie.js","lib/sjcl.js","lib/collections.min.js","lib/mousetrap.js","src/bender/index.js","src/bender/upgrades.js","lib/d3.js","lib/jquery.min.js","lib/cryptico.js","src/psypher.js","src/storage.js","myscript.js", "lib/scrubber.js"],
     "css": ["lib/css/scrubber.css"],
-    "js": ["lib/dexie.js","lib/sjcl.js","lib/collections.min.js","lib/mousetrap.js",
-    "src/bender/index.js","src/bender/upgrades.js","lib/lodash.js","lib/d3.js","lib/jquery.min.js", "lib/scrubber.js",
-    "lib/cryptico.js","src/psypher.js","myscript.js"],
     "run_at": "document_idle",
     "all_frames": true
   }

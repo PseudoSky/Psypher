@@ -1,28 +1,79 @@
+.eph-title{
+  /*margin: 0 0 20px 0;*/
+  font-size: 13px;
+  text-align: left;
+  font-size: medium;
+}
+.eph-title p{
+  color: #aaa;
+  font-family:sans-serif;
+  font-weight: 100;
+}
+.contain{
+
+}
+.left{
+  float: left;
+}
+.right{
+  float: right;
+}
+#ephemeral{
+  background-color: #fff;
+  box-shadow:0 1px 3px 0 rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
+  background: rgba(255, 255, 255);
+  background: rgba(255, 255, 255, 0.9);
+  opacity: 40%;
+  /*padding-right: 10px;*/
+  /*padding-left: 10px*/
+}
+.datepicker{
+  margin-top: -170px;
+  height: 500px;
+  overflow: hidden;
+  /*margin-top:-96px;*/
+  padding-right: 10px;
+  padding-left: 10px;
+}
 .scrubbing-speed-slider {
-  margin-top: -50px;
+  height: 42px;
+  width: 100%;
+  /*margin-top: -50px;*/
 }
 
 .ss-label {
-    text-align: right;
-    margin-top: -15px;
-    z-index: 100000000000;
+  color: #aaa;
+  font-family:sans-serif;
+  margin-bottom: -10px;
+
+  font-weight: 100;
+  text-align: right;
+  margin-top: -15px;
+  z-index: 100000000000;
 }
 
 .datepicker {
+  /*padding-left: 10px;*/
+  /*padding-right: 10px;*/
   position: fixed;
+
   z-index: 10000000;
 }
 
 .ss-wrapper {
-  display: table-row !important;
+  /*padding: 20px;*/
+  width:100%;
+  /*display: table-row !important;*/
   overflow: visible;
 }
 
 .ss-slider {
-  background: rgba(255, 255, 255);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 10px;
-  opacity: 40%;
+
+  width:200px;
+
+  /*border-radius: 10px;*/
+
+
 
 }
 
@@ -31,7 +82,7 @@ body
   font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
   font-size: 100%;
 }
-      
+
 /******************************************************************
 Overlays
 ******************************************************************/
@@ -42,9 +93,9 @@ Overlays
   background-color: transparent;
   opacity: 0;
   z-index: 9999;
-  
+
   cursor: grabbing;
-  cursor: -webkit-grabbing; 
+  cursor: -webkit-grabbing;
   cursor: -moz-grabbing;
 
   transition: opacity .4s ease-in-out;
@@ -89,8 +140,9 @@ Scrubber Components
 }
 
 .scrubbing-speed-slider {
+
   width: 100%;
-  height: 50px;
+
 }
 
 .fill, .fill-track {
@@ -102,6 +154,7 @@ Scrubber Components
 }
 
 .knob {
+  box-shadow:0 1px 3px 0 rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
   position: absolute;
   width: 35px;
   height: 35px;
@@ -116,8 +169,8 @@ Scrubber Components
 }
 .knob:active {
   cursor: grabbing;
-  cursor: -webkit-grabbing; 
-  cursor: -moz-grabbing; 
+  cursor: -webkit-grabbing;
+  cursor: -moz-grabbing;
 }
 
 /******************************************************************
@@ -130,22 +183,22 @@ Arrow
   top: 0px;
   opacity: 1;
 
-  -ms-transform: scale(0.5, 0.5);
-  -webkit-transform: scale(0.5, 0.5);
-  transform: scale(0.5, 0.5);
+  -ms-transform: rotate(180deg) scale(0.5, 0.5);
+  -webkit-transform: rotate(180deg) scale(0.5, 0.5);
+  transform: rotate(180deg) scale(0.5, 0.5);
 
   transition: all .4s;
   -webkit-transition: all .4s;
 }
 
 .arrow-move {
-  top: 30px;
+  top: -30px;
 }
 
 .arrow:before, .arrow:after {
   content: '';
   position: absolute;
-  top: 0px;
+  top: 30px;
   width: 18px;
   border: 2px solid;
 
