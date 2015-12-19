@@ -4,10 +4,23 @@ var active;
 var key="--------- CIPHER KEY ---------\nNFf4WxZHuMhuu00f5Ob70R5m7IKi34FWwJSYDs3hL1QGgZOgHWuqA4ZkIvNWJBCRQjYkGWg2m35hxo7eZWTyEn1v9a728CY5ncObQxnxT2L7f2v4ghmv8Lpz4cL/pjTHCdxdpEerZmc+MA9oCeES8/cwgz+0OX06hrq0//eTuxQ=?aVwDW7RDWqMN3gmlhjXVm0st7VBk8FR2YUHDS8vI40lQGM4rI0WOEN5euPd/lMgX\n--------- CIPHER KEY ---------";
 
 Cipher.set_key(key);
+
 var transform=function(){
   console.log('Trans',_.stripTags(arguments[1][1]),arguments[1][1]);
   return Cipher.decrypt(arguments[1][1]).plaintext;
 };
+
+var elGamalDecrypt=function(){
+  console.log('Trans',_.stripTags(arguments[1][1]),arguments[1][1]);
+  return Psypher.owner.read_message(arguments[1][1]);
+};
+var elGamalEncrypt=function(){
+  console.log('Trans',_.stripTags(arguments[1][1]),arguments[1][1]);
+  return Psypher.owner.send_message(arguments[1][1]);
+};
+var transforms={'elGamal':{decrypt:elGamalDecrypt,encrypt:elGamalEncrypt},'cypher':{decrypt:transform}};
+var current_transform='elGamal';
+// if (current_transform=='elGamal')transform=transforms['elGamal'].decrypt
 var discover=function(){
 
   return User.discover(arguments[1][1]);
@@ -51,19 +64,21 @@ Ast.message.build(Ast.message);
 
 function Bender(){};
 
+
 Bender.bend_messages=function(d,syntax){
 
   // if(!syntax){syntax=Ast.message;}
+  // syntax=transforms[current_transform].decrypt
   // console.log(syntax);
   window.last_bend=bend(d, {
-    find: new RegExp("(?:--------- 0101100101 ---------\n)(.*)(?:\n--------- 1010011010 ---------)", "g"),
+    find: new RegExp("(?:--------- 0101100101 ---------[\n]?)(.*)(?:[\n]?--------- 1010011010 ---------)", "g"),
     wrap:     'fry',
     replace:  transform
     /* Adding a "pipe" option that takes the transformed text
      and sends it to a callback*/
   });
   bend(d, {
-    find: new RegExp("(?:--------- EPHEMERAL KEY ElGamal ---------\n)(.*)(?:\n--------- EPHEMERAL KEY ElGamal ---------)", "g"),
+    find: new RegExp("(?:--------- EPHEMERAL KEY ElGamal ---------[\n]?)(.*)(?:[\n]?--------- EPHEMERAL KEY ElGamal ---------)", "g"),
     wrap:     'fry-u',
     replace:  discover
     /* Adding a "pipe" option that takes the transformed text
@@ -72,12 +87,9 @@ Bender.bend_messages=function(d,syntax){
   return window.last_bend;
 }
 Bender.unbend=function(d,syntax){
-
   if(window.last_bend){
     window.last_bend.undo();
   }
-  // console.log(syntax);
-
 }
 
 function Fry(selectors){
@@ -89,20 +101,18 @@ Fry.add_selectors=function(selectors){
   Psypher.selectors=Array.prototype.concat((Psypher.selectors || []),selectors);
 }
 Fry.find_messages=function(selectors){
-  // console.log('FRY');
   Psypher.frying=true;
   console.log("frying");
   _.each(Psypher.selectors,function(s){
-    // console.log('S: ',s);
     _.each($(s),Bender.bend_messages);
   });
-  // _.debounce(Fry.find_messages,1000);
 }
 
 // if(active.tagName=="BODY"){ return;}
 // console.log(document.activeElement.tagName);
 // console.log('Startingg',document.activeElement,window.valid);
 Mousetrap.bindGlobal(['command+e','ctrl+e'], function(e) {
+  // var current_syntax=transforms[current_transform];
 
 	active=document.activeElement;
 	console.log('Encrypting',active.tagName,active.value);
@@ -117,8 +127,36 @@ Mousetrap.bindGlobal(['command+e','ctrl+e'], function(e) {
   }else{
   	active.innerHTML=Ast.message.pre+'\n'+Cipher.encrypt(active.innerHTML,key)+'\n'+Ast.message.post;
   }
+  // active=document.activeElement;
+  // console.log('Encrypting',active.tagName,active.value);
+  // if(active.tagName=="TEXTAREA"){
+  //   console.log('Encrypting text with Cipher');
+  //   if(active.value && active.value!=''){
+  //     console.log('Encrypting text with Cipher');
+  //     active.value=Ast.message.pre+'\n'+current_syntax['encrypt'](active.value)+'\n'+Ast.message.post;
+  //   }else{
+  //     active.value=Psypher.owner.format_key();
+  //   }
+  // }else{
+  //   active.innerHTML=Ast.message.pre+'\n'+current_syntax['encrypt'](active.innerHTML)+'\n'+Ast.message.post;
+  // }
 
 });
+Mousetrap.bindGlobal(['command+i','ctrl+i'], function(e) {
+  if(!_.isUndefined(Psypher.new_tag)) {
+    Psypher.add_new_tag(Psypher.new_tag.element);
+    Psypher.new_tag.element.style['background-color']=Psypher.new_tag.previous;
+  }
+  document.addEventListener("click",function(e){
+    // (!Psypher.new_tag) && (Psypher)
+    ( !_.isUndefined(Psypher.new_tag) ) && (Psypher.new_tag.element.parentNode.style['background-color']=Psypher.new_tag.previous);
+    Psypher.new_tag={element:e.target,previous:e.target['background-color']}
+    Psypher.new_tag.element.parentNode.style['background-color']="#ccc";
+    console.log(Psypher.new_tag);
+  })
+
+
+})
 Mousetrap.bindGlobal(['command+k','ctrl+k'], function(e) {
 
 	active=document.activeElement;
@@ -229,9 +267,12 @@ Mousetrap.bindGlobal(['command+b','ctrl+b'], function(e) {
 // });
 // window.setInterval(binding,1000);
 // window.fry_inst=new Fry(['#webMessengerRecentMessages','.conversation','pre.paste','push-pages']);
-Psypher.selectors=['#webMessengerRecentMessages','.conversation','pre.paste','push-pages'];
+Psypher.selectors=['#webMessengerRecentMessages','.conversation','pre.paste','.chat-messages'];
 Fry.add_selectors(Psypher.selectors);
-Fry.add_selectors(['#webMessengerRecentMessages','.conversation','pre.paste','push-pages']);
+Fry.add_selectors(['#webMessengerRecentMessages','.conversation','pre.paste','.chat-messages']);
 console.log(Fry.selectors);
-_.defer(Fry.find_messages);
-window.setInterval(Fry.find_messages,1000);
+// _.defer(Fry.find_messages);
+_.defer(function(){
+
+  window.setInterval(Fry.find_messages,1000);
+})

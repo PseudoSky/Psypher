@@ -1,5 +1,20 @@
 // var console.log = (...args) => args.forEach( a => console.log(a) );
 
+
+
+var Domain = Dexie.defineClass({
+    name: String,
+    tags: [String]
+});
+
+Domain.initialize = () => "&name,tags";
+
+/* This needs to add to the domain table */
+Domain.add_new_tag=function(e){
+    return {name: window.location.origin, tags:[e.parentNode.tagName+"."+e.classList.join('.')]};
+}
+
+
 /*
 var Bob = new User('Bob');
 var Alice = new User('Alice');
@@ -124,11 +139,13 @@ User.send_message = function(current_user, user_recipient, clear_text){
 */
 User.read_message = function(current_user, user_sender, plain_text){
   var shared_key = this.shared_key(username)
+
   return sjcl.decrypt(shared_key,plain_text);
 }
 User.prototype.format_key=function(key){
-    key=JSON.stringify(_.extend(this.pub_key, {username:this.username}));
-    return "--------- EPHEMERAL KEY ElGamal ---------\n"+key+"\n--------- EPHEMERAL KEY ElGamal ---------";
+    key=_.extend(this.pub_key, {username:this.username});
+    _.isArray(this.sessions) && (key=_.extend(key,{expires_on:this.sessions[0].expires_on}));
+    return "--------- EPHEMERAL KEY ElGamal ---------\n"+JSON.stringify(key)+"\n--------- EPHEMERAL KEY ElGamal ---------";
 }
 
 
@@ -168,39 +185,51 @@ User.prototype.discover = function(text){
 /* Recieve the sender's DH public key and store it */
 User.prototype.add_key = function(key){
     if(!_.isArray(this.sessions))this.sessions=[];
-    this.sessions.push(Session.build(key));
+    this.sessions.push(Session.new(key));
 }
 
 /* Recieve the sender's DH public key and store it */
 User.prototype.add_session = function(opts){
     if(!_.isArray(this.sessions))this.sessions=[];
-    this.sessions.push(Session.build(opts));
+    this.sessions.push(Session.new({expires_on:opts}));
 }
 
 /*
   Computes the DH shared key from User's sec (secret key)
   and the recipientes pre shared pub key
 */
-User.prototype.shared_key = function(username){
-  return this.keys.sec.dh(this.session_keys[username])
+User.prototype.shared_key = function(){
+  return this.pub_key;
+  // return this.keys.sec.dh(this.session_keys[username])
 }
 
 
 
 /* Assume the user has the recipients username & key */
-User.prototype.send_message = function(user_recipient, clear_text){
-  var shared_key = this.shared_key(user_recipient.username);
+// User.prototype.send_message = function(clear_text){
+//   // var shared_key = this.shared_key();
+//     try{
+//         text=JSON.parse(clear_text);
+//         console.log('not json',text);
+//         return "Expired Session";
+//     }catch(d){
+//         console.log('not json');
+//         return "Expired Session";
+//     // alert("Key Parsing Failed");
+//     }
+//   var shared_key = this.pub_key;
 
-  /* Encrypt the clear_text message using the shared session key */
-  return sjcl.encrypt(shared_key, clear_text);
-}
+//   /* Encrypt the clear_text message using the shared session key */
+//   return sjcl.encrypt(shared_key, clear_text);
+// }
 
 /*
    Gets the user's shared key using their username
    Decrypts the text using that key
 */
 User.prototype.read_message = function(plain_text, username){
-  var shared_key = this.shared_key(username)
+  // var shared_key = this.shared_key(username);
+  var shared_key=this.pub_key;
   return sjcl.decrypt(shared_key,plain_text);
 }
 
@@ -233,7 +262,7 @@ var Session={
         '[uid+username]',
         'pub_key',
         'date_created',
-        'duration'
+        'expires_on'
     ],
 
     table: function(){
@@ -243,15 +272,15 @@ var Session={
     build: function(opts){
         this.session_id   = _.uniqueId();
         this.date_created = new Date();
-        opts && opts.exp_date && (this.duration = new Date(exp_date));
+        opts && opts.exp_date && (this.expires_on = new Date(exp_date));
         this.uid = (opts && opts.uid) || _.uniqueId('session');
         return this;
     },
     new: function(opts){
         // this.session_id   = _.uniqueId();
         this.date_created = new Date();
-        this.duration=opts.duration;
-        // opts && opts.duration && (this.duration = new Date(opts.duration));
+        opts && opts.expires_on && (this.expires_on=opts.expires_on);
+        // opts && opts.expires_on && (this.expires_on = new Date(opts.expires_on));
         this.uid = (opts && opts.uid) || _.uniqueId('session');
         return this;
     },
@@ -300,16 +329,18 @@ function Store(){
     }
     this.schema={
                 "Session":Session.initialize(),
-                "User":User.schema()
+                "User":User.schema(),
+                "Domain":Domain.initialize()
             };
 };
 
 /* Still needs testing for automatic db drop */
-Store.v=2;
+Store.v=4;
 
 Store.schema={
                 "Session":Session.initialize(),
-                "User":User.schema()
+                "User":User.schema(),
+                "Domain":Domain.initialize()
             };
 
 Store.prototype.close = function(cb){
@@ -324,7 +355,7 @@ Store.prototype.close = function(cb){
 
 }
 
-Store.prototype.setup = function(){
+Store.setup = function(){
     if(this.attempts>2)throw "DB Setup Not Functioning Properly";
     var self=this;
     console.log('Psypher Setup Start');
@@ -333,24 +364,30 @@ Store.prototype.setup = function(){
     _.has(Psypher,'db') && Psypher.db.delete();
 
     Psypher.db=new Dexie("Psypher");
-    Psypher.db.version(Store.v).stores(Store.schema);
+    try{
+        Psypher.db.version(Store.v).stores(Store.schema)
+    }catch(e){
+        this.attempts+=1;
+        return Store.setup()
+    }
+
 
     Psypher.db.open().then(function(){
         console.log('Database Successfully Opened');
-        self.initialize();
+        Psypher.store.initialize();
     }).catch(function (error) {
         console.log('Database failed in setup on open',error);
     });
 
 
-    self.attempts+=1;
+    this.attempts+=1;
 
 }
 
 Store.prototype.initialize = function(){
 
     console.log('Initializing');
-    if(!Psypher.db._allTables['User']) return this.close(this.setup);
+    if(!Psypher.db._allTables['User']) return this.close(Store.setup);
     else console.log("User Table Exists");
     Psypher.users=Psypher.db.User;
     Psypher.sessions=Psypher.db.Session;
@@ -380,20 +417,26 @@ Store.prototype.open=function(){
     var self=this;
 
     Psypher.db=new Dexie("Psypher");
-    Psypher.db.version(Store.v).stores(Store.schema);
     Psypher.db.on("versionchange", function(event) {
-        Psypher.db.delete();
-        Psypher.db=new Dexie("Psypher");
-        Psypher.db.version(Store.v).stores(Store.schema);
+        Store.setup()
+        // Psypher.db.delete();
+        // Psypher.db=new Dexie("Psypher");
+        // Psypher.db.version(Store.v).stores(Store.schema);
         if (!confirm ("Another page tries to upgrade the database to version " + event.newVersion +
                       ". Accept?")) {
             return false;
         }
     })
+    try{
+        Psypher.db.version(Store.v).stores(Store.schema)
+    }catch (error) {
+        Store.setup();
+    };
 
     Dexie.Promise.on('error', function(err) {
         // Log to console or show en error indicator somewhere in your GUI...
-        console.log("Uncaught error: " + err);
+        console.log("Uncaught error: " , err);
+        Psypher.db.delete();
     });
 
     Dexie.exists("Psypher").then(function(exists) {
@@ -403,10 +446,10 @@ Store.prototype.open=function(){
             debugger; // Make sure you get notified if database is blocked!
         });
 
-        (exists) ? Psypher.db.open().then(self.initialize) : self.setup();
+        (exists) ? Psypher.db.open().then(self.initialize).catch(Store.setup) : Store.setup();
 
     }).catch(function (error) {
-        this.setup(1);
+        Store.setup(1);
         console.error("Oops, an error occurred when trying to check database existance");
     });
     console.log('Opened Database Successfully');

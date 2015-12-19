@@ -10,6 +10,22 @@ _.mixin({
 	  return ((str == null) ? '' : ''+str).replace(/<\/?[^>]+>/g, '');
 	}
 })
+
+
+
+
+
+// function getPageXY(element) {
+//     var x= 0, y= 0;
+//     while (element) {
+//         x+= element.offsetLeft;
+//         y+= element.offsetTop;
+//         element= element.offsetParent;
+//     }
+//     return [x, y];
+// }
+
+
 // Set.prototype.add_each=function(arr){
 // 	console.log(this);
 // 	arr.forEach(function(elem){
