@@ -16,7 +16,8 @@ _.mixin({
               ix++;
       }
   }
-}
+})
+
 _.mixin({
   get_xpath:function(path) {
     if(typeof path == "object"){
